@@ -1,0 +1,48 @@
+
+<!doctype html>
+<html>
+    <head>
+        <title>{{title}}</title>
+
+        <style>
+            .center
+            {
+                text-align: center;
+            }
+
+            .blog-post
+            {
+                text-indent: 50px;
+            }
+
+            .error
+            {
+                color: red;
+                font-weight: bold
+            }
+            
+            a
+            {
+                padding-right: 1em;
+            }
+
+            textarea
+            {
+                width: 30em;
+                height: 10em;
+            }
+
+        </style>
+    </head>
+<body>
+
+    <div style="display:inline-block">
+        <a href="/blog">Main Blog Page</a>
+        <a href="/newpost">Add a Blog Entry</a>
+    </div>
+
+    {% block content %}
+    {% endblock %}
+
+</body>
+</html>
