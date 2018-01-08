@@ -13,8 +13,7 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     title = db.Column(db.String(120))
     content = db.Column(db.String(1000))
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))    
 
     def __init__(self, title, content, owner_id):
         self.title = title
@@ -23,7 +22,7 @@ class Blog(db.Model):
         
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(32))
+    username = db.Column(db.String(32), unique=True)
     password = db.Column(db.String(32))
     blogs = db.relationship('Blog', backref='owner')
 
@@ -33,7 +32,7 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register', 'list_blogs', 'index']
+    allowed_routes = ['login', 'signup', 'list_blogs', 'index']
     if request.endpoint not in allowed_routes and 'the_user' not in session:
         return redirect('/login')
 
@@ -59,6 +58,54 @@ def login():
 
     return render_template('login.html')
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        #get form data
+        username = request.form["username"]
+        password = request.form["password"]
+        verify_pass = request.form["verify"]
+
+        #check to see if there is already a user with "username" in db
+        existing_user = User.query.filter_by(username=username).first()
+
+        #flag for determining if errors happen
+        has_errors = False
+        
+        if not username or not password or not verify_pass:
+            flash("please make sure all fields have been filed out.","error")
+            has_errors = True
+        if password and not(password == verify_pass):
+            flash("Password and verify password do not match","error")
+            has_errors = True
+        if password and len(password) < 3:
+            flash("Your password must be at least 3 characters long no more than 32", "error")
+            has_errors = True
+        if username and len(username) < 3:
+            flash("Your username must be at least 3 characters long no more than 32", "error")
+            has_errors = True
+        if existing_user:
+            flash("An account with this username already exists do you want to <a href=/login>Login</a>" , "error")
+            has_errors = True
+
+        if has_errors:
+            return render_template("signup.html", username=username)
+            
+        if not existing_user:
+            new_user = User(username = username, password = password)
+            db.session.add(new_user)
+            db.session.commit()
+            session['the_user'] = username
+            return redirect('/')
+
+    else:
+        return render_template("signup.html")
+        
+@app.route('/logout', methods=["GET"])
+def logout():
+    del session["the_user"]
+    return redirect('/')
+
 @app.route('/blog', methods=['GET', 'POST'])
 def blog_list():
     returned_id = request.args.get('blog_id')
@@ -76,7 +123,7 @@ def blog_list():
 
     blogs = Blog.query.all()
 
-    return render_template('blog.html',title="Build-a-Blog!", blogs=blogs)
+    return render_template('blog.html',title="Build-a-Blog!", blogs=blogs, in_session=True)
 
 @app.route('/newpost', methods=['GET', 'POST'])
 def add_blog():
@@ -94,7 +141,7 @@ def add_blog():
 
         if errror_title or error_content:
             return render_template('newpost.html', title="Add a Blog", error_title = errror_title, error_content = error_content,
-                                    blog_name = blog_name ,blog_message = blog_message)
+                                    blog_name = blog_name ,blog_message = blog_message, in_session=True)
 
         blog_entry = Blog(blog_name, blog_message)
 
@@ -104,7 +151,7 @@ def add_blog():
         return redirect('/blog?blog_id=' + str(blog_entry.id))
 
     else:
-        return render_template('newpost.html',title="Add a Blog")
+        return render_template('newpost.html',title="Add a Blog", in_session=True)
 
     
 

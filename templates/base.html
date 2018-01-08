@@ -10,6 +10,12 @@
                 text-align: center;
             }
 
+            .right
+            {
+                position: absolute;
+                right: 0;
+            }
+
             .blog-post
             {
                 text-indent: 50px;
@@ -42,15 +48,18 @@
     </head>
 <body>
 
-    <div style="display:inline-block">
+    <div style="display:inline-block; width:100%">
         <a href="/blog">Main Blog Page</a>
         <a href="/newpost">Add a Blog Entry</a>
+        {% if in_session %}
+            <a class="right" href="/logout">Logout</a>
+            {% endif %}
     </div>
 
     {% with messages = get_flashed_messages(with_categories=True) %}
         <ul>
         {% for category,message in messages %}
-            <li class="{{category}}">{{message}}</li>
+            <li class="{{category}}">{{message | safe}}</li>
         {% endfor %}
         </ul>
 {% endwith %}
