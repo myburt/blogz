@@ -49,10 +49,14 @@
 <body>
 
     <div style="display:inline-block; width:100%">
-        <a href="/blog">Main Blog Page</a>
-        <a href="/newpost">Add a Blog Entry</a>
+        <a href="/">Home</a>
+        <a href="/blog">All Posts</a>
+        <a href="/newpost">New Post</a>
         {% if in_session %}
             <a class="right" href="/logout">Logout</a>
+            
+        {% else %}
+            <a class="right" href="/login">Login</a>
             {% endif %}
     </div>
 

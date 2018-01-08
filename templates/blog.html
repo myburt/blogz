@@ -9,7 +9,7 @@
     </p>
 
     {% else %}
-        <h1 class="center">Build a Blog!</h1>
+        <h1 class="center">Blogz!</h1>
             
         {% if blogs|length == 0 %}
             <p>No blogs yet</p>
@@ -22,6 +22,7 @@
                 <p class="blog-post">
                     {{blog.content}}
                 </p>
+                <p>Written by <a href="/blog?owner_id={{blog.owner.id}}">{{blog.owner.username}}</a></p>
                 
                 <hr />
                 {% endfor %}

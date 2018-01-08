@@ -15,10 +15,10 @@ class Blog(db.Model):
     content = db.Column(db.String(1000))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))    
 
-    def __init__(self, title, content, owner_id):
+    def __init__(self, title, content, owner):
         self.title = title
         self.content = content
-        self.owner_id = owner_id
+        self.owner = owner
         
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -32,13 +32,14 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup', 'list_blogs', 'index']
+    allowed_routes = ['login', 'signup', 'blog_list', 'index']
     if request.endpoint not in allowed_routes and 'the_user' not in session:
         return redirect('/login')
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    return render_template('index.html',title="Build-a-Blog!")
+    userlist = User.query.all()
+    return render_template('index.html',title="Build-a-Blog!", userlist=userlist)
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -109,6 +110,13 @@ def logout():
 @app.route('/blog', methods=['GET', 'POST'])
 def blog_list():
     returned_id = request.args.get('blog_id')
+    owner_id = request.args.get('owner_id')
+
+    if owner_id:
+        the_owner = User.query.filter_by(id=owner_id).first()
+        blogs = Blog.query.filter_by(owner=the_owner).all()
+   
+        return render_template('blog.html',title="Build-a-Blog!", blogs=blogs)
 
     if returned_id:
         blog_to_view = Blog.query.get(returned_id)
@@ -123,10 +131,12 @@ def blog_list():
 
     blogs = Blog.query.all()
 
-    return render_template('blog.html',title="Build-a-Blog!", blogs=blogs, in_session=True)
+    return render_template('blog.html',title="Build-a-Blog!", blogs=blogs)
 
 @app.route('/newpost', methods=['GET', 'POST'])
 def add_blog():
+
+    owner = User.query.filter_by(username=session['the_user']).first()
 
     if request.method == 'POST':
         blog_name = request.form['blog-name']
@@ -143,7 +153,7 @@ def add_blog():
             return render_template('newpost.html', title="Add a Blog", error_title = errror_title, error_content = error_content,
                                     blog_name = blog_name ,blog_message = blog_message, in_session=True)
 
-        blog_entry = Blog(blog_name, blog_message)
+        blog_entry = Blog(blog_name, blog_message, owner)
 
         db.session.add(blog_entry)
         db.session.commit()

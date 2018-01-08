@@ -4,8 +4,15 @@
 
     <h1 class="center">Welcome to Blogz</h1>
     <div class="center">
-        <h2>What do you want to do</h2>
-        <a href="/blog" >Go to blog page</a>
+        <h2>Blog Users</h2>
+
+        <div style="display:inline-block; width:60%">
+                {% for user in userlist %}
+                    <a href="/blog?owner_id={{user.id}}">{{user.username}}</a>
+                    {% endfor %}
+        </div>
     </div>
+
+    
     
 {% endblock %}
